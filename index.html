@@ -199,7 +199,7 @@
 
                     const payload = { contents: chatHistory };
                     // La API key se proporciona automáticamente en el entorno de Canvas
-                    const apiKey = "";
+                    const apiKey = ""; // Dejar vacío para que Canvas lo inyecte
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                     // Realiza la llamada a la API de Gemini
@@ -208,6 +208,12 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+
+                    // Verifica si la respuesta HTTP es exitosa (código 200)
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Error de la API: ${response.status} - ${errorData.error ? errorData.error.message : 'Error desconocido'}`);
+                    }
 
                     const result = await response.json(); // Parsea la respuesta JSON
 
@@ -218,11 +224,11 @@
                         const text = result.candidates[0].content.parts[0].text;
                         summaryResult.innerHTML = `<p>${text}</p>`; // Muestra el resumen
                     } else {
-                        summaryResult.innerHTML = '<p class="text-red-500 text-center">No se pudo obtener un resumen. Inténtalo de nuevo.</p>';
+                        summaryResult.innerHTML = '<p class="text-red-500 text-center">No se pudo obtener un resumen. La respuesta de la IA fue inesperada.</p>';
                     }
                 } catch (error) {
                     console.error('Error al llamar a la API de Gemini:', error);
-                    summaryResult.innerHTML = '<p class="text-red-500 text-center">Ocurrió un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.</p>';
+                    summaryResult.innerHTML = `<p class="text-red-500 text-center">Ocurrió un error al procesar tu solicitud: ${error.message}. Por favor, inténtalo de nuevo más tarde o revisa la consola del navegador para más detalles.</p>`;
                 } finally {
                     loadingIndicator.classList.add('hidden'); // Oculta el indicador de carga
                 }
